@@ -45,42 +45,45 @@ import java.net.*;
 public class Main {
 
     public static void main(String[] args) {
-        try {
-            //TODO utöka koden så att den försöker ansluta till en annan server om anslutningen misslyckas
-            //Göteborg:
-            //gbg1.ntp.se
-            //gbg2.ntp.se
-            //Malmö:
-            //mmo1.ntp.se
-            //mmo2.ntp.se
-            //Stockholm:
-            //sth1.ntp.se
-            //sth2.ntp.se
-            //Sundsvall:
-            //svl1.ntp.se
-            //svl2.ntp.se
+        String ntpToArray[] = {
+                "gbg1.ntp.se", "gbg2.ntp.se",
+                "mmo1.ntp.se", "mmo2.ntp.se",
+                "sth1.ntp.se", "sth2.ntp.se",
+                "svl1.ntp.se", "svl2.ntp.se"};
+        int serverStep = 0;
 
-            DatagramSocket socket = new DatagramSocket();
-            InetAddress address = InetAddress.getByName("gbg1.ntp.se");
-            SNTPMessage  message = new SNTPMessage();
-            byte [] buf = message.toByteArray();
-            DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);
+        do {
 
-            socket.send(packet);
-            System.out.println("Sent request");
-            socket.receive(packet);
-            SNTPMessage response = new SNTPMessage(packet.getData());
-            System.out.println("Got reply");
-            socket.close();
-            System.out.println();
+            try {
 
-            //TODO räkna ut offseten mellan datorns klocka och tidsservern, se RFC
+                DatagramSocket socket = new DatagramSocket();
+                InetAddress address = InetAddress.getByName(ntpToArray[serverStep]);
+                SNTPMessage message = new SNTPMessage();
+                byte[] buf = message.toByteArray();
+                DatagramPacket packet = new DatagramPacket(buf, buf.length, address, 123);
+                System.out.println("Lyckades ansluta till: " + ntpToArray[serverStep]);
+                serverStep = 0;
+
+                socket.send(packet);
+                System.out.println("Sent request");
+                socket.receive(packet);
+                SNTPMessage response = new SNTPMessage(packet.getData());
+                System.out.println("Got reply");
+                socket.close();
+                System.out.println();
+                response.time();
+                response.toString();
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                System.err.println("Could Not Connect To: " + ntpToArray[serverStep]);
+                serverStep++;
+                //e.printStackTrace();
+            }
         }
+        while (serverStep != 0);
 
+    }
 //Nedan är ett exempel på ett meddelande från en time server
 /*        byte [] buf = {  36,  1,  0, -25,
                 0,   0,  0,   0,
@@ -107,4 +110,4 @@ public class Main {
         SNTPMessage msg = new SNTPMessage(buf);*/
 
     }
-}
+
